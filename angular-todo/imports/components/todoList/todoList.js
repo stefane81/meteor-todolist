@@ -8,13 +8,27 @@ class TodoListCtrl {
     constructor($scope) {
         $scope.viewModel(this);
 
+        this.hideCompleted = false;
+
         this.helpers({
             tasks() {
-                return Tasks.find({}, {
+                const selector = {};
+
+                // if hide completed is checked, filter tasks
+                if (this.getReactively('hideCompleted')) {
+                    selector.checked = { $ne: true };
+                }
+
+                return Tasks.find(selector, {
                     sort: {
                         createdAt: -1
                     }
                 });
+            },
+            incompleteCount(){
+                return Tasks.find({
+                    checked: {$ne:true}
+                }).count();
             }
         })
     }
@@ -27,6 +41,19 @@ class TodoListCtrl {
         });
 
         this.newTask = '';
+    }
+
+    setChecked(task) {
+        // Set the checked property to the opposite of its current value
+        Tasks.update(task._id, {
+            $set: {
+                checked: !task.checked
+            },
+        });
+    }
+
+    removeTask(task) {
+        Tasks.remove(task._id);
     }
 }
 
